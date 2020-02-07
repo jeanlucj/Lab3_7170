@@ -1,7 +1,7 @@
-name: "Lab3_7170"
+name: Lab3_7170
 output_dir: ../docs
 navbar:
-  title: "Lab3_7170"
+  title: Lab3_7170
   left:
   - text: Home
     href: index.html
@@ -9,6 +9,12 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  - text: Lab3
+    href: MakeRelationshipMatrices.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/jeanlucj/Lab3_7170
 output:
   workflowr::wflow_html:
     toc: yes
