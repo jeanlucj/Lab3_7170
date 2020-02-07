@@ -1,0 +1,226 @@
+---
+title: "Making Relationship Matrices"
+author: 
+  name: "Jean-Luc Jannink and Kelly Robbins"
+  affiliation: "USDA-ARS / Cornell"
+date: "February 7, 2020"
+output:
+  html_document:
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 12
+    highlight: haddock
+    theme: cosmo
+    toc: yes
+    toc_float:
+      collapsed: no
+      toc_depth: 2
+editor_options: 
+  chunk_output_type: console
+---
+  
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+knitr::opts_chunk$set(message=FALSE)
+knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(tidy=TRUE)
+knitr::opts_chunk$set(results="hold")
+knitr::opts_chunk$set(collapse=TRUE)
+knitr::opts_chunk$set(fig.show="hold")
+knitr::opts_chunk$set(tidy.opts = list(wrap=FALSE))
+```
+
+## Objectives
+Use `AlphaSimR` to simulate founders, then generate a pedigree of four generations, either through random mating or through selection.  
+For the last generation, make relationship matrices using the pedigree extracted from the populations, using genowide SNP markers, or using the QTL simulated by `AlphaSimR`. How different are these matrices? Does the effective population size of the founders affect the difference among matrices?
+
+## Reproducibility
+Here is the [README file](./README.md) for this report  
+
+### Script setup
+Install packages, start the README.md, set the random seed  
+```{r Script setup, echo=FALSE}
+ip <- installed.packages()
+packages_used <- c("AlphaSimR", "tidyverse")
+
+for (package in packages_used){
+  isInstalled <- package %in% rownames(ip)
+  if (!isInstalled){
+    stop(paste("ERROR: you need to install the", package, "package"))
+  } else{
+    library(package, character.only=T)
+  }
+}#END packages_used
+
+source("./code/addToREADME.R")
+addToREADME(paste0("## ", rmarkdown::metadata$title), append=F)
+addToREADME(date())
+
+packages_used <- as_tibble(ip[packages_used, c("Package", "Version", "Built")])
+# Clunky way to add the packages at the end
+readme_file <- ".addToReadMe.txt"
+write_tsv(packages_used, readme_file)
+
+random_seed <- 45678
+set.seed(random_seed)
+addToREADME(paste("The random seed is", random_seed))
+
+addToREADME(c("The packages used in this script are:", readLines(readme_file)))
+```
+
+## Coalescent simulator to create founder haplotypes
+
+### Script parameters
+The historical effective population size (`historicalNe` here) is the size of the breeding population prior to recorded pedigrees.  
+Test this script with `historicalNe` of either 100 or 1000.
+```{r script parameters, echo=FALSE}
+historicalNe <- 1000
+nFounders <- historicalNe
+nChr <- 7
+segSites <- 1400
+nQTL <- 50
+nSNP <- 500
+addToREADME(c(
+  paste("Historical effective population size ", historicalNe), 
+  paste("Number of founders ", nFounders), 
+  paste("Number of chromosomes ", nChr), 
+  paste("Number of segregating sites per chromosome", segSites),
+  paste("Number of QTL per chromosome", nQTL),
+  paste("Number of SNPs per chromosome", nSNP))
+)
+```
+Historical effective population size `historicalNe` = `r historicalNe`  
+Number of founders `nFounders` = `r nFounders`  
+Number of chromosomes `nChr` = `r nChr`  
+Each chromosome has `segSites` = `r segSites` segregating sites  
+Each chromosome has `nQTL` = `r nQTL` QTL
+
+### Initiate simulation
+```{r Initiate simulation}
+founderHaps <- runMacs2(nInd=nFounders, nChr=nChr, segSites=segSites, Ne=historicalNe, histNe=NULL, histGen=NULL)
+SP <- SimParam$new(founderHaps)
+meanDD <- 0.4
+varDD <- 0.3
+addToREADME(c("Chunk Initiate simulation",
+              paste("Dominance degree mean", meanDD),
+              paste("Dominance degree variance", varDD), "")
+            )
+SP$addTraitAD(nQtlPerChr=nQTL, meanDD=meanDD, varDD=varDD)
+SP$addSnpChip(nSnpPerChr=nSNP)
+
+# Create a new population of founders
+founders <- newPop(founderHaps, simParam=SP)
+```
+
+## Run generations to create pedigree: setup
+### Random mating or selection
+```{r Selection setup}
+# Whether to randomly mate or to select (that is the question!)
+randomOrSelect <- "random" # Or put "select" if you want...
+# Number of selection cycles
+nCyc <- 4
+# Narrow-sense heritability
+h2 <- 0.4
+errVar <- diag(varA(founders)) / h2 - diag(varG(founders))
+# Selection intensity
+nProgeny <- historicalNe
+nToSelect <- ifelse(randomOrSelect == "random", nProgeny, nProgeny / 10)
+addToREADME(c("Chunk Selection setup",
+              paste("Number of cycles", nCyc),
+              paste("Heritability", h2),
+              paste("Error variance", round(errVar, 2)),
+              paste("Random mating or selection", randomOrSelect),
+              paste("Number of progeny", nProgeny),
+              paste("Number to select", nToSelect))
+            )
+
+# Matrix to save pedigrees
+pedRec <- cbind(id=founders@id, seedPar=founders@mother, pollenPar=founders@father)
+```
+
+## Run generations to create pedigree: loop
+```{r Selection do it}
+selected <- founders
+for (cyc in 1:nCyc){
+  # Create new population by random mating
+  # nCrosses: how many crosses to make
+  # nProgeny: number of progeny per cross
+  progenyPop <- randCross(selected, nCrosses=nProgeny, nProgeny=1)
+  # Get phenotypes
+  progenyPop <- setPheno(progenyPop, varE=errVar)
+  # Store pedigree in pedRec for analysis
+  pedRec <- rbind(pedRec, cbind(id=progenyPop@id, seedPar=progenyPop@mother, pollenPar=progenyPop@father))
+  # Select
+  # If randomOrSelect == "random", nToSelect will be size of pop: no selection
+  selected <- selectInd(progenyPop, nToSelect)
+}
+```
+
+## Setup visualization and plotting
+```{r Setup visualization and plotting}
+# pick nPickVisu individuals from the last generation to look at
+nPickVisu <- 20
+pickVisu <- sort(sample(nProgeny, nPickVisu))
+# pick nPickPlot individuals from the last generation to make plots
+nPickPlot <- min(nProgeny, 200)
+pickPlot <- sort(sample(nProgeny, nPickPlot))
+addToREADME(c(
+  paste("Number of individuals for visualization ", nPickVisu), 
+  paste("Number of individuals for visualization ", nPickPlot))
+)
+```
+
+## The "true" relationship matrix is that of QTL
+We want to estimate a relationship matrix as close to this as possible
+
+## Create a SNP relationship matrix
+The SNP relationship matrix is another realization. Assuming SNPs are in LD with the QTL, it should be more strongly correlated to the causal matrix than the pedigree-based relationship matrix.
+
+## Create a pedigree relationship matrix
+This is the expectation of the QTL relationship matrix. The QTL relationship matrix is one realization.
+```{r Make relationship matrices}
+source("./code/calcRelationshipMatrices.R")
+qtlMat <- pullQtlGeno(progenyPop)
+qtlRelMat <- calcGenomicRelationshipMatrix(qtlMat)
+
+snpMat <- pullSnpGeno(progenyPop)
+snpRelMat <- calcGenomicRelationshipMatrix(snpMat)
+
+numPedMat <- convertNamesToRows(pedRec) # AlphaSimR uses character names for id
+aMat <- 2 * pedigreeToCCmatrix(numPedMat)
+# Just keep the aMat for the final generation
+aMat <- aMat[nProgeny * nCyc + 1:nProgeny, nProgeny * nCyc + 1:nProgeny]
+```
+
+## Comparisons
+```{r Side by side}
+# Regress of diagonal elements of one matrix on another
+offDiag <- function(relMat){
+  return(c(relMat[upper.tri(relMat)]))
+}
+
+# Visualizations
+heatmap(qtlRelMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T)
+heatmap(aMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T)
+heatmap(snpRelMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T)
+
+# Off diagonal element plots
+plot(offDiag(aMat), offDiag(qtlRelMat), pch=16, main="QTL against Pedigree", xlab="Pedigree pairwise", ylab="QTL pairwise")
+plot(offDiag(aMat), offDiag(snpRelMat), pch=16, main="SNP against Pedigree", xlab="Pedigree pairwise", ylab="SNP pairwise")
+plot(offDiag(snpRelMat), offDiag(qtlRelMat), pch=16, main="QTL against SNP", xlab="SNP pairwise", ylab="QTL pairwise")
+
+# Diagonal element plots
+plot(diag(aMat), diag(qtlRelMat), pch=16, main="QTL against Pedigree", xlab="Pedigree 1 + F", ylab="QTL 1 + F")
+plot(diag(aMat), diag(snpRelMat), pch=16, main="SNP against Pedigree", xlab="Pedigree 1 + F", ylab="SNP 1 + F")
+plot(diag(snpRelMat), diag(qtlRelMat), pch=16, main="QTL against SNP", xlab="SNP 1 + F", ylab="QTL 1 + F")
+```
