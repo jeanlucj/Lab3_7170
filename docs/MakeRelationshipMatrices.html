@@ -26,6 +26,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -357,9 +359,18 @@ div.tocify {
 <li>
   <a href="license.html">License</a>
 </li>
+<li>
+  <a href="MakeRelationshipMatrices.html">Lab3</a>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/jeanlucj/Lab3_7170">
+    <span class="fa fa-github"></span>
+     
+    Source code
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -404,7 +415,7 @@ USDA-ARS / Cornell<br><h4 class="date">February 7, 2020</h4>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-02-07
+<strong>Last updated:</strong> 2020-02-08
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -495,10 +506,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongeb9972c"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> eb9972c </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjeanlucjLab37170tree436b2c8daaa7a875d19d7e4b1c09ebfa9809737dtargetblank436b2c8a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jeanlucj/Lab3_7170/tree/436b2c8daaa7a875d19d7e4b1c09ebfa9809737d" target="_blank">436b2c8</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongeb9972c" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjeanlucjLab37170tree436b2c8daaa7a875d19d7e4b1c09ebfa9809737dtargetblank436b2c8a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -553,7 +564,41 @@ Message
 Rmd
 </td>
 <td>
-eb9972c
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/436b2c8daaa7a875d19d7e4b1c09ebfa9809737d/analysis/MakeRelationshipMatrices.Rmd" target="_blank">436b2c8</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-08
+</td>
+<td>
+Last modifications and lab discussion questions
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jeanlucj/Lab3_7170/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/MakeRelationshipMatrices.html" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/eb9972c177f5ceec1829e341209c66f1cedd8a5a/analysis/MakeRelationshipMatrices.Rmd" target="_blank">eb9972c</a>
 </td>
 <td>
 jeanlucj
@@ -583,7 +628,7 @@ pre code {
 </style>
 <div id="objectives" class="section level2">
 <h2>Objectives</h2>
-<p>Use <code>AlphaSimR</code> to simulate founders, then generate a pedigree of four generations, either through random mating or through selection.<br />
+<p>Use <code>AlphaSimR</code> to simulate founders, then generate a pedigree of a few generations, either through random mating or through selection.<br />
 For the last generation, make relationship matrices using the pedigree extracted from the populations, using genowide SNP markers, or using the QTL simulated by <code>AlphaSimR</code>. How different are these matrices? Does the effective population size of the founders affect the difference among matrices?</p>
 </div>
 <div id="reproducibility" class="section level2">
@@ -600,21 +645,25 @@ For the last generation, make relationship matrices using the pedigree extracted
 <h3>Script parameters</h3>
 <p>The historical effective population size (<code>historicalNe</code> here) is the size of the breeding population prior to recorded pedigrees.<br />
 Test this script with <code>historicalNe</code> of either 100 or 1000.</p>
-<p>Historical effective population size <code>historicalNe</code> = 1000<br />
-Number of founders <code>nFounders</code> = 1000<br />
+<p>Historical effective population size <code>historicalNe</code> = 100<br />
+Number of founders <code>nFounders</code> = 100<br />
 Number of chromosomes <code>nChr</code> = 7<br />
 Each chromosome has <code>segSites</code> = 1400 segregating sites<br />
 Each chromosome has <code>nQTL</code> = 50 QTL</p>
+<blockquote>
+<p>Discuss what you think might be the impact of the number of QTL on the QTL relationship matrix and how it compares to the genome-wide relationship matrix</p>
+</blockquote>
 </div>
 <div id="initiate-simulation" class="section level3">
 <h3>Initiate simulation</h3>
+<p>Specify effective population size of founders here</p>
 <pre class="r"><code>founderHaps &lt;- runMacs2(nInd = nFounders, nChr = nChr, segSites = segSites, Ne = historicalNe, 
     histNe = NULL, histGen = NULL)
 SP &lt;- SimParam$new(founderHaps)
 meanDD &lt;- 0.4
 varDD &lt;- 0.3
 addToREADME(c(&quot;Chunk Initiate simulation&quot;, paste(&quot;Dominance degree mean&quot;, meanDD), 
-    paste(&quot;Dominance degree variance&quot;, varDD), &quot;&quot;))
+    paste(&quot;Dominance degree variance&quot;, varDD)))
 SP$addTraitAD(nQtlPerChr = nQTL, meanDD = meanDD, varDD = varDD)
 SP$addSnpChip(nSnpPerChr = nSNP)
 
@@ -624,8 +673,7 @@ founders &lt;- newPop(founderHaps, simParam = SP)</code></pre>
 </div>
 <div id="run-generations-to-create-pedigree-setup" class="section level2">
 <h2>Run generations to create pedigree: setup</h2>
-<div id="random-mating-or-selection" class="section level3">
-<h3>Random mating or selection</h3>
+<p>Specify random mating or selection here</p>
 <pre class="r"><code># Whether to randomly mate or to select (that is the question!)
 randomOrSelect &lt;- &quot;random&quot;  # Or put &#39;select&#39; if you want...
 # Number of selection cycles
@@ -644,9 +692,9 @@ addToREADME(c(&quot;Chunk Selection setup&quot;, paste(&quot;Number of cycles&qu
 # Matrix to save pedigrees
 pedRec &lt;- cbind(id = founders@id, seedPar = founders@mother, pollenPar = founders@father)</code></pre>
 </div>
-</div>
 <div id="run-generations-to-create-pedigree-loop" class="section level2">
 <h2>Run generations to create pedigree: loop</h2>
+<p><code>AlphaSimR</code> creates the founders with a coalescent and therefore no pedigree. So we can’t look at a pedigree-based relationship matrix on the founders. Here we advance the founders a few generations just to create that pedigree.</p>
 <pre class="r"><code>selected &lt;- founders
 for (cyc in 1:nCyc) {
     # Create new population by random mating
@@ -665,6 +713,7 @@ for (cyc in 1:nCyc) {
 </div>
 <div id="setup-visualization-and-plotting" class="section level2">
 <h2>Setup visualization and plotting</h2>
+<p>You want to visualize relationship matrices that, depending on the effective population size setting, are up to 1000 x 1000. That is big and slow. So pick a subset of rows and columns for visualizing.</p>
 <pre class="r"><code># pick nPickVisu individuals from the last generation to look at
 nPickVisu &lt;- 20
 pickVisu &lt;- sort(sample(nProgeny, nPickVisu))
@@ -674,17 +723,12 @@ pickPlot &lt;- sort(sample(nProgeny, nPickPlot))
 addToREADME(c(paste(&quot;Number of individuals for visualization &quot;, nPickVisu), paste(&quot;Number of individuals for visualization &quot;, 
     nPickPlot)))</code></pre>
 </div>
-<div id="the-true-relationship-matrix-is-that-of-qtl" class="section level2">
-<h2>The “true” relationship matrix is that of QTL</h2>
-<p>We want to estimate a relationship matrix as close to this as possible</p>
-</div>
-<div id="create-a-snp-relationship-matrix" class="section level2">
-<h2>Create a SNP relationship matrix</h2>
-<p>The SNP relationship matrix is another realization. Assuming SNPs are in LD with the QTL, it should be more strongly correlated to the causal matrix than the pedigree-based relationship matrix.</p>
-</div>
-<div id="create-a-pedigree-relationship-matrix" class="section level2">
-<h2>Create a pedigree relationship matrix</h2>
-<p>This is the expectation of the QTL relationship matrix. The QTL relationship matrix is one realization.</p>
+<div id="create-the-additive-relationship-matrices" class="section level2">
+<h2>Create the additive relationship matrices</h2>
+<p>The true or causal relationship matrix is that of QTL. In reality, we don’t have access to that matrix and we approximated it with the pedigree- or SNP-based relationship matrix.<br />
+The pedigree-based relationship matrix is the expectation of the QTL relationship matrix. The QTL relationship matrix is one realization of that expectation.<br />
+The SNP relationship matrix is another realization. Assuming SNPs are in LD with the QTL, it should be more strongly correlated to the QTL matrix than the pedigree-based matrix.<br />
+<strong>NOTE</strong> The code to make these matrices is in “code/calcRelationshipMatrices.R” That’s the meat of this lab, so we will have a look.</p>
 <pre class="r"><code>source(&quot;./code/calcRelationshipMatrices.R&quot;)
 qtlMat &lt;- pullQtlGeno(progenyPop)
 qtlRelMat &lt;- calcGenomicRelationshipMatrix(qtlMat)
@@ -699,32 +743,378 @@ aMat &lt;- aMat[nProgeny * nCyc + 1:nProgeny, nProgeny * nCyc + 1:nProgeny]</cod
 </div>
 <div id="comparisons" class="section level2">
 <h2>Comparisons</h2>
+<blockquote>
+<p>Run this script with two different Ne and / or random versus selected pedigree and describe how the conditions affected the comparison between relationship matrices</p>
+</blockquote>
 <pre class="r"><code># Regress of diagonal elements of one matrix on another
 offDiag &lt;- function(relMat) {
     return(c(relMat[upper.tri(relMat)]))
 }
 
 # Visualizations
-heatmap(qtlRelMat[pickVisu, pickVisu], symm = T, Rowv = NA, Colv = NA, revC = T)
-heatmap(aMat[pickVisu, pickVisu], symm = T, Rowv = NA, Colv = NA, revC = T)
-heatmap(snpRelMat[pickVisu, pickVisu], symm = T, Rowv = NA, Colv = NA, revC = T)
+heatmap(qtlRelMat[pickVisu, pickVisu], symm = T, Rowv = NA, Colv = NA, revC = T, 
+    main = &quot;QTL Relationship Matrix&quot;)
+heatmap(aMat[pickVisu, pickVisu], symm = T, Rowv = NA, Colv = NA, revC = T, main = &quot;Pedigree Relationship Matrix&quot;)
+heatmap(snpRelMat[pickVisu, pickVisu], symm = T, Rowv = NA, Colv = NA, revC = T, 
+    main = &quot;SNP Relationship Matrix&quot;)
 
 # Off diagonal element plots
-plot(offDiag(aMat), offDiag(qtlRelMat), pch = 16, main = &quot;QTL against Pedigree&quot;, 
+plot(offDiag(aMat), offDiag(qtlRelMat), pch = 16, main = &quot;QTL against Pedigree, off-diagonal&quot;, 
     xlab = &quot;Pedigree pairwise&quot;, ylab = &quot;QTL pairwise&quot;)
-plot(offDiag(aMat), offDiag(snpRelMat), pch = 16, main = &quot;SNP against Pedigree&quot;, 
+plot(offDiag(aMat), offDiag(snpRelMat), pch = 16, main = &quot;SNP against Pedigree, off-diagonal&quot;, 
     xlab = &quot;Pedigree pairwise&quot;, ylab = &quot;SNP pairwise&quot;)
-plot(offDiag(snpRelMat), offDiag(qtlRelMat), pch = 16, main = &quot;QTL against SNP&quot;, 
+plot(offDiag(snpRelMat), offDiag(qtlRelMat), pch = 16, main = &quot;QTL against SNP, off-diagonal&quot;, 
     xlab = &quot;SNP pairwise&quot;, ylab = &quot;QTL pairwise&quot;)
 
 # Diagonal element plots
-plot(diag(aMat), diag(qtlRelMat), pch = 16, main = &quot;QTL against Pedigree&quot;, xlab = &quot;Pedigree 1 + F&quot;, 
-    ylab = &quot;QTL 1 + F&quot;)
-plot(diag(aMat), diag(snpRelMat), pch = 16, main = &quot;SNP against Pedigree&quot;, xlab = &quot;Pedigree 1 + F&quot;, 
-    ylab = &quot;SNP 1 + F&quot;)
-plot(diag(snpRelMat), diag(qtlRelMat), pch = 16, main = &quot;QTL against SNP&quot;, xlab = &quot;SNP 1 + F&quot;, 
-    ylab = &quot;QTL 1 + F&quot;)</code></pre>
-<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-4.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-5.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-6.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-7.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-8.png" width="672" style="display: block; margin: auto;" /><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-9.png" width="672" style="display: block; margin: auto;" /></p>
+plot(diag(aMat), diag(qtlRelMat), pch = 16, main = &quot;QTL against Pedigree, diagonal&quot;, 
+    xlab = &quot;Pedigree 1 + F&quot;, ylab = &quot;QTL 1 + F&quot;)
+plot(diag(aMat), diag(snpRelMat), pch = 16, main = &quot;SNP against Pedigree, diagonal&quot;, 
+    xlab = &quot;Pedigree 1 + F&quot;, ylab = &quot;SNP 1 + F&quot;)
+plot(diag(snpRelMat), diag(qtlRelMat), pch = 16, main = &quot;QTL against SNP, diagonal&quot;, 
+    xlab = &quot;SNP 1 + F&quot;, ylab = &quot;QTL 1 + F&quot;)</code></pre>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-1">
+Past versions of “Side by side-1.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-1.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-2">
+Past versions of “Side by side-2.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-2.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-3">
+Past versions of “Side by side-3.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-3.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-4">
+Past versions of “Side by side-4.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-4.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-5">
+Past versions of “Side by side-5.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-5" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-5.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-6.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-6">
+Past versions of “Side by side-6.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-6" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-6.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-7.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-7">
+Past versions of “Side by side-7.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-7" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-7.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-8.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-8">
+Past versions of “Side by side-8.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-8" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-8.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/MakeRelationshipMatrices.Rmd/Side%20by%20side-9.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-Side-by-side-9">
+Past versions of “Side by side-9.png”
+</button>
+</p>
+<div id="fig-no-spaces-Side-by-side-9" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jeanlucj/Lab3_7170/blob/19a45b39a02fb4adaf08c05183cf52cb49d05555/docs/figure/MakeRelationshipMatrices.Rmd/Side by side-9.png" target="_blank">19a45b3</a>
+</td>
+<td>
+jeanlucj
+</td>
+<td>
+2020-02-07
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
