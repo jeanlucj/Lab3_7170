@@ -26,6 +26,7 @@ pedigreeToCCmatrix <- function(threeColPed){
     if (sire > 0 & dam > 0) ccSelf <- ccSelf + ccMat[sire, dam] / 2
     ccMat[prog, prog] <- ccSelf
   }
+  rownames(ccMat) <- colnames(ccMat) <- 1:nInd
   return(ccMat)
 }
 

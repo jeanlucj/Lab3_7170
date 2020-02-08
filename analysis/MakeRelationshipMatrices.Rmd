@@ -41,7 +41,7 @@ knitr::opts_chunk$set(tidy.opts = list(wrap=FALSE))
 ```
 
 ## Objectives
-Use `AlphaSimR` to simulate founders, then generate a pedigree of four generations, either through random mating or through selection.  
+Use `AlphaSimR` to simulate founders, then generate a pedigree of a few generations, either through random mating or through selection.  
 For the last generation, make relationship matrices using the pedigree extracted from the populations, using genowide SNP markers, or using the QTL simulated by `AlphaSimR`. How different are these matrices? Does the effective population size of the founders affect the difference among matrices?
 
 ## Reproducibility
@@ -84,7 +84,7 @@ addToREADME(c("The packages used in this script are:", readLines(readme_file)))
 The historical effective population size (`historicalNe` here) is the size of the breeding population prior to recorded pedigrees.  
 Test this script with `historicalNe` of either 100 or 1000.
 ```{r script parameters, echo=FALSE}
-historicalNe <- 1000
+historicalNe <- 100
 nFounders <- historicalNe
 nChr <- 7
 segSites <- 1400
@@ -105,7 +105,10 @@ Number of chromosomes `nChr` = `r nChr`
 Each chromosome has `segSites` = `r segSites` segregating sites  
 Each chromosome has `nQTL` = `r nQTL` QTL
 
+> Discuss what you think might be the impact of the number of QTL on the QTL relationship matrix and how it compares to the genome-wide relationship matrix
+
 ### Initiate simulation
+Specify effective population size of founders here
 ```{r Initiate simulation}
 founderHaps <- runMacs2(nInd=nFounders, nChr=nChr, segSites=segSites, Ne=historicalNe, histNe=NULL, histGen=NULL)
 SP <- SimParam$new(founderHaps)
@@ -113,7 +116,7 @@ meanDD <- 0.4
 varDD <- 0.3
 addToREADME(c("Chunk Initiate simulation",
               paste("Dominance degree mean", meanDD),
-              paste("Dominance degree variance", varDD), "")
+              paste("Dominance degree variance", varDD))
             )
 SP$addTraitAD(nQtlPerChr=nQTL, meanDD=meanDD, varDD=varDD)
 SP$addSnpChip(nSnpPerChr=nSNP)
@@ -123,7 +126,7 @@ founders <- newPop(founderHaps, simParam=SP)
 ```
 
 ## Run generations to create pedigree: setup
-### Random mating or selection
+Specify random mating or selection here
 ```{r Selection setup}
 # Whether to randomly mate or to select (that is the question!)
 randomOrSelect <- "random" # Or put "select" if you want...
@@ -149,6 +152,7 @@ pedRec <- cbind(id=founders@id, seedPar=founders@mother, pollenPar=founders@fath
 ```
 
 ## Run generations to create pedigree: loop
+`AlphaSimR` creates the founders with a coalescent and therefore no pedigree. So we can't look at a pedigree-based relationship matrix on the founders. Here we advance the founders a few generations just to create that pedigree.
 ```{r Selection do it}
 selected <- founders
 for (cyc in 1:nCyc){
@@ -167,6 +171,7 @@ for (cyc in 1:nCyc){
 ```
 
 ## Setup visualization and plotting
+You want to visualize relationship matrices that, depending on the effective population size setting, are up to 1000 x 1000. That is big and slow. So pick a subset of rows and columns for visualizing.
 ```{r Setup visualization and plotting}
 # pick nPickVisu individuals from the last generation to look at
 nPickVisu <- 20
@@ -180,14 +185,11 @@ addToREADME(c(
 )
 ```
 
-## The "true" relationship matrix is that of QTL
-We want to estimate a relationship matrix as close to this as possible
-
-## Create a SNP relationship matrix
-The SNP relationship matrix is another realization. Assuming SNPs are in LD with the QTL, it should be more strongly correlated to the causal matrix than the pedigree-based relationship matrix.
-
-## Create a pedigree relationship matrix
-This is the expectation of the QTL relationship matrix. The QTL relationship matrix is one realization.
+## Create the additive relationship matrices
+The true or causal relationship matrix is that of QTL. In reality, we don't have access to that matrix and we approximated it with the pedigree- or SNP-based relationship matrix.  
+The pedigree-based relationship matrix is the expectation of the QTL relationship matrix. The QTL relationship matrix is one realization of that expectation.  
+The SNP relationship matrix is another realization. Assuming SNPs are in LD with the QTL, it should be more strongly correlated to the QTL matrix than the pedigree-based matrix.  
+**NOTE** The code to make these matrices is in "code/calcRelationshipMatrices.R" That's the meat of this lab, so we will have a look.
 ```{r Make relationship matrices}
 source("./code/calcRelationshipMatrices.R")
 qtlMat <- pullQtlGeno(progenyPop)
@@ -203,6 +205,9 @@ aMat <- aMat[nProgeny * nCyc + 1:nProgeny, nProgeny * nCyc + 1:nProgeny]
 ```
 
 ## Comparisons
+
+> Run this script with two different Ne and / or random versus selected pedigree and describe how the conditions affected the comparison between relationship matrices
+
 ```{r Side by side}
 # Regress of diagonal elements of one matrix on another
 offDiag <- function(relMat){
@@ -210,17 +215,17 @@ offDiag <- function(relMat){
 }
 
 # Visualizations
-heatmap(qtlRelMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T)
-heatmap(aMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T)
-heatmap(snpRelMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T)
+heatmap(qtlRelMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T, main="QTL Relationship Matrix")
+heatmap(aMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T, main="Pedigree Relationship Matrix")
+heatmap(snpRelMat[pickVisu, pickVisu], symm=T, Rowv=NA, Colv=NA, revC=T, main="SNP Relationship Matrix")
 
 # Off diagonal element plots
-plot(offDiag(aMat), offDiag(qtlRelMat), pch=16, main="QTL against Pedigree", xlab="Pedigree pairwise", ylab="QTL pairwise")
-plot(offDiag(aMat), offDiag(snpRelMat), pch=16, main="SNP against Pedigree", xlab="Pedigree pairwise", ylab="SNP pairwise")
-plot(offDiag(snpRelMat), offDiag(qtlRelMat), pch=16, main="QTL against SNP", xlab="SNP pairwise", ylab="QTL pairwise")
+plot(offDiag(aMat), offDiag(qtlRelMat), pch=16, main="QTL against Pedigree, off-diagonal", xlab="Pedigree pairwise", ylab="QTL pairwise")
+plot(offDiag(aMat), offDiag(snpRelMat), pch=16, main="SNP against Pedigree, off-diagonal", xlab="Pedigree pairwise", ylab="SNP pairwise")
+plot(offDiag(snpRelMat), offDiag(qtlRelMat), pch=16, main="QTL against SNP, off-diagonal", xlab="SNP pairwise", ylab="QTL pairwise")
 
 # Diagonal element plots
-plot(diag(aMat), diag(qtlRelMat), pch=16, main="QTL against Pedigree", xlab="Pedigree 1 + F", ylab="QTL 1 + F")
-plot(diag(aMat), diag(snpRelMat), pch=16, main="SNP against Pedigree", xlab="Pedigree 1 + F", ylab="SNP 1 + F")
-plot(diag(snpRelMat), diag(qtlRelMat), pch=16, main="QTL against SNP", xlab="SNP 1 + F", ylab="QTL 1 + F")
+plot(diag(aMat), diag(qtlRelMat), pch=16, main="QTL against Pedigree, diagonal", xlab="Pedigree 1 + F", ylab="QTL 1 + F")
+plot(diag(aMat), diag(snpRelMat), pch=16, main="SNP against Pedigree, diagonal", xlab="Pedigree 1 + F", ylab="SNP 1 + F")
+plot(diag(snpRelMat), diag(qtlRelMat), pch=16, main="QTL against SNP, diagonal", xlab="SNP 1 + F", ylab="QTL 1 + F")
 ```
